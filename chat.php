@@ -1,5 +1,9 @@
 <?php
-	setcookie("uname", $_GET["uname"], time()+(60*60*24*7))
+	setcookie("uname", $_POST["uname"], time()+(60*60*24*7));
+	
+	$id = $_POST["id"];
+	$pw = $_POST["pw"];
+	
 ?><!DOCTYPE html>
 <html>
 <head>
@@ -37,6 +41,9 @@
 
 <script>
 window.onload = function(){
+
+  auth();
+  
   getLog();
 	
   document.querySelector("#sbmt").addEventListener("click",function(){
@@ -46,30 +53,54 @@ window.onload = function(){
     var request = new XMLHttpRequest();
     request.open('POST', 'http://127.0.0.1/chat2/set.php', false);
     request.onreadystatechange = function(){
+    if (request.status === 200 || request.status === 304 ) {
+	  var response = request.responseText;
+	  var json     = JSON.parse(response);
+	
+	  if( json["head"]["status"] === false ){
+		  alert("失敗しました");
+		  return(false);	
+	  }
+
+     getLog();
+		  }
+	  else if(request.status >= 500){
+		  alert("ServerError");
+	  }
+  	};
+
+     request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+
+     request.send(
+    	    "uname=" + encodeURIComponent(uname) + "&"
+    	  + "msg="   + encodeURIComponent(msg)
+      );
+   })
+};
+
+function auth(){
+	var request = new XMLHttpRequest();
+	request.open('POST', 'http://127.0.0.1/chat2/auth.php', false);
+		request.onreadystatechange = function(){
 		if (request.status === 200 || request.status === 304 ) {
 			var response = request.responseText;
 			var json     = JSON.parse(response);
-			
 			if( json["head"]["status"] === false ){
-				alert("失敗しました");
-				return(false);	
+				alert("ログインに失敗しました");
+				location.href = "/chat2/";
 			}
-
-		    getLog();
+			else{
+				alert("ログインに成功しました");
+			}
 		}
-		else if(request.status >= 500){
-			alert("ServerError");
-		}
-	};
+	}
+	request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
 
-    request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-
-    request.send(
-    	  "uname=" + encodeURIComponent(uname) + "&"
-    	+ "msg="   + encodeURIComponent(msg)
-    );
-  })
-};
+	request.send(
+  	    "id=" + encodeURIComponent("<?php echo $id; ?>") + "&"
+  	  + "pw=" + encodeURIComponent("<?php echo $pw; ?>")
+	);
+}
 
 function getLog(){
 	var request = new XMLHttpRequest();	
