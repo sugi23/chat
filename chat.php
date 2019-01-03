@@ -118,7 +118,9 @@ function getLog(){
 		
 			var html="";
 			for(i=0; i<json["body"].length; i++){
-				html += json["body"][i]["name"] +":"+ json["body"][i]["message"] + "<br>";
+				var mes = json["body"][i]["message"];
+				mes = autoLink(mes);
+				html += json["body"][i]["name"] +":"+ mes + "<br>";
 			}
 			document.querySelector("#chatlog").innerHTML = html;
 		}
@@ -132,6 +134,15 @@ function getLog(){
 	};
 	
 	request.send();
+}
+
+function autoLink(s){
+	if(!s){
+		return '';
+	}
+	var str = /((ftp|http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?)/gi;
+	s = s.replace( str, '<a href="$1" target="_blank">$1</a>' );
+	return s;
 }
 </script>
 </body>
